@@ -1,9 +1,9 @@
 const CACHE_NAME = 'PlotThatBus';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/icon.png',
-  '/icon-512.png',
+  '/PlotThatBus/',
+  '/PlotThatBus/index.html',
+  '/PlotThatBus/icon.png',
+  '/PlotThatBus/icon-512.png',
   'https://unpkg.com/leaflet/dist/leaflet.css',
   'https://unpkg.com/leaflet/dist/leaflet.js'
 ];
