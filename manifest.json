@@ -1,19 +1,19 @@
 {
-  "name": "SEPTA TransitMapper",
-  "short_name": "SEPTA Map",
+  "name": "PlotThatBus",
+  "short_name": "PlotThatBus",
   "description": "Real-time SEPTA bus and train tracking",
-  "start_url": "/index.html",
+  "start_url": "/PlotThatBus/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#83cbe1",
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "/PlotThatBus/icon.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/PlotThatBus/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
