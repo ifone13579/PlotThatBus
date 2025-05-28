@@ -271,33 +271,45 @@ function getDirectionArrow(heading) { // Show heading on buses/trains
   return "";
 }
 
-function formatLateness(minutes) { // Show how long the vehicle is late
+function formatLateness(minutes) {
   if (minutes == null || isNaN(minutes)) return "Unknown";
   minutes = parseInt(minutes);
   if (minutes === 0) return "On time";
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  let result = "Late by: ";
+  if (minutes > 0) {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    let result = "Late by: ";
+    if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""}`;
+    if (hours > 0 && remainingMinutes > 0) result += " and ";
+    if (remainingMinutes > 0) result += `${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`;
+    return result;
+  }
+  // Handle early
+  const absMinutes = Math.abs(minutes);
+  const hours = Math.floor(absMinutes / 60);
+  const remainingMinutes = absMinutes % 60;
+  let result = "Early by: ";
   if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""}`;
   if (hours > 0 && remainingMinutes > 0) result += " and ";
   if (remainingMinutes > 0) result += `${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`;
   return result;
 }
-
+ 
 function createIcon(label, color, heading) { // Plots the bus on the map
-  if (label === "BLVDDIR") label = "DIR";
-  const arrow = getDirectionArrow(heading);
-  return L.divIcon({
-    className: "custom-icon",
-    html: `<div style="
-      background:${color};color:#fff;
-      padding:2px 4px;border-radius:4px;
-      font-size:12px;text-align:center;
-      font-weight:bold;
-      min-width:24px;
-    ">${label}${arrow}</div>`,
-    iconSize: [30, 18],
-    iconAnchor: [15, 9],
+
+    if (label === "BLVDDIR") label = "DIR";
+    const arrow = getDirectionArrow(heading);
+    return L.divIcon({
+     className: "custom-icon",
+     html: `<div style="
+       background:${color};color:#fff;
+       padding:2px 4px;border-radius:4px;
+       font-size:12px;text-align:center;
+       font-weight:bold;
+       min-width:24px;
+     ">${label}${arrow}</div>`,
+     iconSize: [30, 18],
+     iconAnchor: [15, 9],
   });
 }
 
@@ -505,6 +517,7 @@ function updateMap() {
       buses.forEach(bus => {
         let route = bus.route_id;
         if (!route || hiddenRoutes.includes(route)) return;
+        if (!bus.VehicleID || bus.VehicleID === "None" || bus.VehicleID === "0") return;
 
         // Apply filters based on logic
         let showMarker = noFiltersActive || filterLogic === "Any";
@@ -540,7 +553,7 @@ function updateMap() {
         }
 
         if (!showMarker) return;
-
+        
         const lat = parseFloat(bus.lat);
         const lng = parseFloat(bus.lng);
         if (isNaN(lat) || isNaN(lng)) return;
@@ -551,7 +564,7 @@ function updateMap() {
         const heading = bus.heading;
 
         if (route === "BLVDDIR") route = "DIR";
-
+       
         const marker = L.marker([lat, lng], {
           icon: createIcon(route, getColor(routeKey), heading)
         }).bindPopup(`
@@ -729,6 +742,19 @@ setInterval(() => {
 // Initial load
 fetchBusData();
 fetchTrainData();
+
+// Get location
+ window.addEventListener('load', () => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+        map.setView([latitude, longitude], 15);
+      },
+    );
+  }
+});
+ 
 </script>
 </body>
 </html>
