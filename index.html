@@ -271,19 +271,30 @@ function getDirectionArrow(heading) { // Show heading on buses/trains
   return "";
 }
 
-function formatLateness(minutes) { // Show how long the vehicle is late
+function formatLateness(minutes) {
   if (minutes == null || isNaN(minutes)) return "Unknown";
   minutes = parseInt(minutes);
   if (minutes === 0) return "On time";
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  let result = "Late by: ";
+  if (minutes > 0) {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    let result = "Late by: ";
+    if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""}`;
+    if (hours > 0 && remainingMinutes > 0) result += " and ";
+    if (remainingMinutes > 0) result += `${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`;
+    return result;
+  }
+  // Handle early
+  const absMinutes = Math.abs(minutes);
+  const hours = Math.floor(absMinutes / 60);
+  const remainingMinutes = absMinutes % 60;
+  let result = "Early by: ";
   if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""}`;
   if (hours > 0 && remainingMinutes > 0) result += " and ";
   if (remainingMinutes > 0) result += `${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`;
   return result;
 }
-
+ 
 function createIcon(label, color, heading) { // Plots the bus on the map
   if (label === "BLVDDIR") label = "DIR";
   const arrow = getDirectionArrow(heading);
@@ -552,6 +563,8 @@ function updateMap() {
 
         if (route === "BLVDDIR") route = "DIR";
 
+       if (parseInt(bus.late) === 999) return; // Skip plotting this bus
+       
         const marker = L.marker([lat, lng], {
           icon: createIcon(route, getColor(routeKey), heading)
         }).bindPopup(`
@@ -729,6 +742,22 @@ setInterval(() => {
 // Initial load
 fetchBusData();
 fetchTrainData();
+
+ window.addEventListener('load', () => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+        map.setView([latitude, longitude], 15);
+      },
+      error => {
+        // Optionally show an alert or fallback
+        showAlert("Geolocation denied or unavailable.");
+      }
+    );
+  }
+});
+ 
 </script>
 </body>
 </html>
