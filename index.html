@@ -296,19 +296,20 @@ function formatLateness(minutes) {
 }
  
 function createIcon(label, color, heading) { // Plots the bus on the map
-  if (label === "BLVDDIR") label = "DIR";
-  const arrow = getDirectionArrow(heading);
-  return L.divIcon({
-    className: "custom-icon",
-    html: `<div style="
-      background:${color};color:#fff;
-      padding:2px 4px;border-radius:4px;
-      font-size:12px;text-align:center;
-      font-weight:bold;
-      min-width:24px;
-    ">${label}${arrow}</div>`,
-    iconSize: [30, 18],
-    iconAnchor: [15, 9],
+
+    if (label === "BLVDDIR") label = "DIR";
+    const arrow = getDirectionArrow(heading);
+    return L.divIcon({
+     className: "custom-icon",
+     html: `<div style="
+       background:${color};color:#fff;
+       padding:2px 4px;border-radius:4px;
+       font-size:12px;text-align:center;
+       font-weight:bold;
+       min-width:24px;
+     ">${label}${arrow}</div>`,
+     iconSize: [30, 18],
+     iconAnchor: [15, 9],
   });
 }
 
@@ -516,6 +517,7 @@ function updateMap() {
       buses.forEach(bus => {
         let route = bus.route_id;
         if (!route || hiddenRoutes.includes(route)) return;
+        if (!bus.VehicleID || bus.VehicleID === "None" || bus.VehicleID === "0") return;
 
         // Apply filters based on logic
         let showMarker = noFiltersActive || filterLogic === "Any";
@@ -551,7 +553,7 @@ function updateMap() {
         }
 
         if (!showMarker) return;
-
+        
         const lat = parseFloat(bus.lat);
         const lng = parseFloat(bus.lng);
         if (isNaN(lat) || isNaN(lng)) return;
@@ -562,8 +564,6 @@ function updateMap() {
         const heading = bus.heading;
 
         if (route === "BLVDDIR") route = "DIR";
-
-       if (parseInt(bus.late) === 999) return; // Skip plotting this bus
        
         const marker = L.marker([lat, lng], {
           icon: createIcon(route, getColor(routeKey), heading)
@@ -743,6 +743,7 @@ setInterval(() => {
 fetchBusData();
 fetchTrainData();
 
+// Get location
  window.addEventListener('load', () => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
@@ -750,10 +751,6 @@ fetchTrainData();
         const { latitude, longitude } = position.coords;
         map.setView([latitude, longitude], 15);
       },
-      error => {
-        // Optionally show an alert or fallback
-        showAlert("Geolocation denied or unavailable.");
-      }
     );
   }
 });
