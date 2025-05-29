@@ -1,760 +1,932 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
- <title>PlotThatBus - Live SEPTA Tracker</title>
- <meta charset="utf-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
- <meta name="description" content="Real-time SEPTA bus and train tracking">
- <meta name="theme-color" content="#83cbe1">
- <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
- <link rel="manifest" href="manifest.json">
- <link rel="apple-touch-icon" href="icon.png">
- <link rel="icon" href="favicon.ico"></link>
- <style>
-   body { margin: 0; font-family: sans-serif; }
-   #map { height: 100vh; }
-
-   .map-controls {
-     position: absolute;
-     font-size: 18px;
-     top: 20px;
-     left: 10px;
-     right: 10px;
-     background: rgba(255, 255, 255, 0.95);
-     padding: 10px;
-     border-radius: 8px;
-     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-     z-index: 1000;
-     display: flex;
-     flex-direction: column;
-     gap: 8px;
-     max-width: 100%;
-   }
-
-   input, button {
-     width: 100%;
-     box-sizing: border-box;
-     padding: 6px;
-     font-size: 14px;
-     border-radius: 8px;
-     border: 1px solid #ccc;
-   }
-
-   .rounded-button {
-     border: none;
-     background-color: #00539F;
-     color: white;
-     cursor: pointer;
-   }
-
-   .rounded-button:hover {
-     background-color: #003f7d;
-   }
-
-   .logic-button {
-     background-color: #28a745;
-   }
-
-   .logic-button:hover {
-     background-color: #218838;
-   }
-
-   #selectedRoutes {
-     display: flex;
-     gap: 5px;
-     flex-wrap: wrap;
-     margin-bottom: 6px;
-     margin-top: 10px;
-   }
-
-   .route-tag {
-     color: #fff;
-     border-radius: 6px;
-     padding: 5px 8px;
-     cursor: pointer;
-     font-size: 12px;
-   }
-
-   .hidden {
-     display: none;
-   }
-
-   .autocomplete-list {
-     top: 38px;
-     background: white;
-     border: 1px solid #ccc;
-     max-height: 150px;
-     overflow-y: auto;
-     position: absolute;
-     z-index: 1001;
-     width: calc(100% - 20px);
-     border-radius: 0 0 8px 8px;
-   }
-
-   .autocomplete-list div {
-     padding: 8px;
-     cursor: pointer;
-   }
-
-   .autocomplete-list div:hover {
-     background-color: #f0f0f0;
-   }
-
-   .button-row {
-     display: flex;
-     justify-content: space-between;
-     gap: 10px;
-   }
-
-   .alert-message {
-     position: absolute;
-     bottom: 10px;
-     left: 10px;
-     right: 10px;
-     color: white;
-     padding: 10px;
-     font-size: 14px;
-     text-align: center;
-     border-radius: 8px;
-     z-index: 1002;
-   }
- </style>
+    <title>PlotThatBus - Live SEPTA Tracker</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Real-time SEPTA bus and train tracking">
+    <meta name="theme-color" content="#83cbe1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" href="favicon.ico">
+    </link>
+    <style>
+        body { margin: 0; font-family: sans-serif; }
+           #map { height: 100vh; }
+        
+           .map-controls {
+             position: absolute;
+             font-size: 18px;
+             top: 20px;
+             left: 10px;
+             right: 10px;
+             background: rgba(255, 255, 255, 0.95);
+             padding: 10px;
+             border-radius: 8px;
+             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+             z-index: 1000;
+             display: flex;
+             flex-direction: column;
+             gap: 8px;
+             max-width: 100%;
+           }
+        
+           input, button {
+             width: 100%;
+             box-sizing: border-box;
+             padding: 6px;
+             font-size: 14px;
+             border-radius: 8px;
+             border: 1px solid #ccc;
+           }
+        
+           .rounded-button {
+             border: none;
+             background-color: #00539F;
+             color: white;
+             cursor: pointer;
+           }
+        
+           .rounded-button:hover {
+             background-color: #003f7d;
+           }
+        
+           .logic-button {
+             background-color: #28a745;
+           }
+        
+           .logic-button:hover {
+             background-color: #218838;
+           }
+        
+           #selectedRoutes {
+             display: flex;
+             gap: 5px;
+             flex-wrap: wrap;
+             margin-bottom: 6px;
+             margin-top: 10px;
+           }
+        
+           .route-tag {
+             color: #fff;
+             border-radius: 6px;
+             padding: 5px 8px;
+             cursor: pointer;
+             font-size: 12px;
+           }
+        
+           .hidden {
+             display: none;
+           }
+        
+           .autocomplete-list {
+             top: 38px;
+             background: white;
+             border: 1px solid #ccc;
+             max-height: 150px;
+             overflow-y: auto;
+             position: absolute;
+             z-index: 1001;
+             width: calc(100% - 20px);
+             border-radius: 0 0 8px 8px;
+           }
+        
+           .autocomplete-list div {
+             padding: 8px;
+             cursor: pointer;
+           }
+        
+           .autocomplete-list div:hover {
+             background-color: #f0f0f0;
+           }
+        
+           .button-row {
+             display: flex;
+             justify-content: space-between;
+             gap: 10px;
+           }
+        
+           .alert-message {
+             position: absolute;
+             bottom: 10px;
+             left: 10px;
+             right: 10px;
+             color: white;
+             padding: 10px;
+             font-size: 14px;
+             text-align: center;
+             border-radius: 8px;
+             z-index: 1002;
+           }
+        
+           .leaflet-control-container {
+          display: none !important;
+        }
+    </style>
 </head>
+
 <body>
 
-<div id="map"></div>
+    <div id="map"></div>
 
-<div class="map-controls">
-    <div style="position: relative;">
-        <input id="routeInput" type="text" placeholder="Enter route, vehicle, model, depot, or transit type" />
-        <div id="autocompleteList" class="autocomplete-list"></div>
+    <div class="map-controls">
+        <div style="position: relative;">
+            <input id="routeInput" type="text" placeholder="Enter route, vehicle, model, depot, or transit type" />
+            <div id="autocompleteList" class="autocomplete-list"></div>
+        </div>
+        <div id="selectedRoutes"></div>
+        <div class="button-row">
+            <button id="clearFilterBtn" class="rounded-button hidden">Clear All Filters</button>
+            <button id="logicBtn" class="rounded-button logic-button">Matching All Filters</button>
+            <button id="locateBtn" class="rounded-button">Use Your Location</button>
+        </div>
     </div>
-    <div id="selectedRoutes"></div>
-    <div class="button-row">
-        <button id="clearFilterBtn" class="rounded-button hidden">Clear Filter</button>
-        <button id="logicBtn" class="rounded-button logic-button">Matching All Filters</button>
-        <button id="locateBtn" class="rounded-button">Use Your Location</button>
+    <div id="alertMessage" class="alert-message hidden"></div>
+
+    <!-- Add info button and popup -->
+    <div id="infoBtn" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 99999;
+  background: #fff;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid #d0d0d0;
+">
+        <span style="font-size: 28px; color: #00539F;">&#9432;</span>
     </div>
-</div>
-<div id="alertMessage" class="alert-message hidden"></div>  
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-const map = L.map('map').setView([39.9526, -75.1652], 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 18
-}).addTo(map);
-
-function getBusModel(vehicleID) {
- const id = parseInt(vehicleID);
- if (id === 800) return "2007 New Flyer E40LFR";
- if (id >= 801 && id <= 837) return "2008 New Flyer E40LFR";
- if (id >= 8120 && id <= 8219) return "2008 New Flyer DE40LF";
- if (id >= 8220 && id <= 8339) return "2009 New Flyer DE40LF";
- if (id >= 8340 && id <= 8459) return "2010 New Flyer DE40LFR";
- if (id >= 8460 && id <= 8559) return "2011 New Flyer DE40LFR";
- if (id >= 7300 && id <= 7369) return "2013 Nova Bus LFSA HEV";
- if (id >= 7370 && id <= 7414) return "2014 Nova Bus LFSA HEV";
- if (id >= 7415 && id <= 7454) return "2015 Nova Bus LFSA HEV";
- if (id >= 7455 && id <= 7484) return "2016 Nova Bus LFSA HEV";
- if (id >= 8600 && id <= 8689) return "2014 Nova Bus LFS HEV";
- if (id >= 4600 && id <= 4634) return "2016 New Flyer Midi-30";
- if (id >= 3000 && id <= 3089) return "2017 New Flyer XDE40";
- if (id >= 3090 && id <= 3194) return "2018 New Flyer XDE40";
- if (id >= 3195 && id <= 3294) return "2019 New Flyer XDE40";
- if (id >= 3295 && id <= 3409) return "2020 New Flyer XDE40";
- if (id >= 3410 && id <= 3524) return "2021 New Flyer XDE40";
- if (id >= 3525 && id <= 3644) return "2022 New Flyer XDE40";
- if (id >= 3645 && id <= 3684) return "2023 New Flyer XDE40";
- if (id >= 3685 && id <= 3864) return "2024 New Flyer XDE40";
- if (id >= 700 && id <= 709) return "2024 New Flyer XHE40";
- if (id >= 9000 && id <= 9111) return "1980-1981 Kawasaki LRV";
- if (id >= 100 && id <= 128) return "1980-1981 Kawasaki LRV";
- return "Unknown Model";
-}
-
-// Route data and colors
-const redRoutes = ["3", "6", "17", "18", "21", "23", "33", "45", "46", "47", "48", "51", "52", "56", "58", "60", "63", "66", "70", "79", "82", "108", "113"];
-const greenRoutes = ["T1", "T2", "T3", "T4", "T5"];
-const yellowRoutes = ["G1"];
-const pinkRoutes = ["D1", "D2"];
-const hiddenRoutes = ["L1", "B1", "M1"]; // These routes are not tracked properly by the SEPTA API.
-const trainLines = { // Abbreviations for the Regional Rail Lines
-  "Airport": "AIR",
-  "Chestnut Hill East": "CHE",
-  "Chestnut Hill West": "CHW",
-  "Cynwyd": "CYN",
-  "Fox Chase": "FOX",
-  "Lansdale/Doylestown": "LAN",
-  "Media/Wawa": "MED",
-  "Manayunk/Norristown": "NOR",
-  "Paoli/Thorndale": "PAO",
-  "Trenton": "TRE",
-  "Warminster": "WAR",
-  "Wilmington/Newark": "WIL",
-  "West Trenton": "WTR"
-};
-const depots = { // Bus Depots
-  1: "Comly",
-  2: "Frankford",
-  3: "Midvale",
-  4: "Victory",
-  5: "Alleghany",
-  6: "Frontier",
-  7: "Southern",
-  8: "Elmwood",
-  9: "Callowhill"
-};
-const routeNameChanges = { // Former route names are redirected to their new ones
-  "G": "63",
-  "H": "71",
-  "J": "41",
-  "L": "51",
-  "R": "82",
-  "XH": "81",
-  "10": "T1",
-  "11": "T4",
-  "13": "T3",
-  "15": "G1",
-  "34": "T2",
-  "36": "T5"
-};
-const vehicleTypes = {
-  "Bus": redRoutes,
-  "Trolley": greenRoutes.concat(yellowRoutes),
-  "Suburban Trolley": pinkRoutes,
-  "Regional Rail": Object.values(trainLines)
-};
-let busMarkers = [];
-let trainMarkers = [];
-let currentBusData = [];
-let currentTrainData = [];
-let filterLogic = "Any"; // Default to OR (Any Filter)
-const selectedFilters = {
-  routes: new Set(),
-  models: new Set(),
-  depots: new Set(),
-  types: new Set()
-};
-
-const routeInput = document.getElementById("routeInput");
-const clearFilterBtn = document.getElementById("clearFilterBtn");
-const logicBtn = document.getElementById("logicBtn");
-const locateBtn = document.getElementById("locateBtn");
-const selectedRoutesDiv = document.getElementById("selectedRoutes");
-
-function toTitleCase(str) {
-  return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
-}
-
-function getColor(route) {
-  if (redRoutes.includes(route)) return "#dc504b";
-  if (greenRoutes.includes(route)) return "#5a9708";
-  if (yellowRoutes.includes(route)) return "#fcd600";
-  if (pinkRoutes.includes(route)) return "#e6427b";
-  if (Object.values(trainLines).includes(route)) return "#46647b"; // Regional Rail color
-  return "#000000";
-}
-
-function getDirectionArrow(heading) { // Show heading on buses/trains
-  if (heading == null) return "";
-  const h = parseFloat(heading);
-  if (isNaN(h)) return "";
-  if (h >= 337.5 || h < 22.5) return "\u2191"; // North (↑)
-  if (h >= 22.5 && h < 67.5) return "\u2197"; // Northeast (↗)
-  if (h >= 67.5 && h < 112.5) return "\u2192"; // East (→)
-  if (h >= 112.5 && h < 157.5) return "\u2198"; // Southeast (↘)
-  if (h >= 157.5 && h < 202.5) return "\u2193"; // South (↓)
-  if (h >= 202.5 && h < 247.5) return "\u2199"; // Southwest (↙)
-  if (h >= 247.5 && h < 292.5) return "\u2190"; // West (←)
-  if (h >= 292.5 && h < 337.5) return "\u2196"; // Northwest (↖)
-  return "";
-}
-
-function formatLateness(minutes) {
-  if (minutes == null || isNaN(minutes)) return "Unknown";
-  minutes = parseInt(minutes);
-  if (minutes === 0) return "On time";
-  if (minutes > 0) {
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    let result = "Late by: ";
-    if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""}`;
-    if (hours > 0 && remainingMinutes > 0) result += " and ";
-    if (remainingMinutes > 0) result += `${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`;
-    return result;
-  }
-  // Handle early
-  const absMinutes = Math.abs(minutes);
-  const hours = Math.floor(absMinutes / 60);
-  const remainingMinutes = absMinutes % 60;
-  let result = "Early by: ";
-  if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""}`;
-  if (hours > 0 && remainingMinutes > 0) result += " and ";
-  if (remainingMinutes > 0) result += `${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`;
-  return result;
-}
- 
-function createIcon(label, color, heading) { // Plots the bus on the map
-
-    if (label === "BLVDDIR") label = "DIR";
-    const arrow = getDirectionArrow(heading);
-    return L.divIcon({
-     className: "custom-icon",
-     html: `<div style="
-       background:${color};color:#fff;
-       padding:2px 4px;border-radius:4px;
-       font-size:12px;text-align:center;
-       font-weight:bold;
-       min-width:24px;
-     ">${label}${arrow}</div>`,
-     iconSize: [30, 18],
-     iconAnchor: [15, 9],
-  });
-}
-
-function clearMarkers(markers) {
-  markers.forEach(marker => map.removeLayer(marker));
-  markers.length = 0;
-}
-
-function showAlert(message, isSuccess = false) {
-  const alertBox = document.getElementById("alertMessage");
-  alertBox.textContent = message;
-  alertBox.style.backgroundColor = isSuccess ? "#28a745" : "#dc3545";
-  alertBox.classList.remove("hidden");
-  setTimeout(() => alertBox.classList.add("hidden"), 3000);
-}
-
-function isValidRoute(route) {
-  const allRoutes = currentBusData.flatMap(group =>
-    Object.entries(group).map(([key, buses]) => key)
-  );
-  return allRoutes.includes(route) || Object.values(trainLines).includes(route);
-}
-
-function findBusByNumber(busNum) {
-  return currentBusData.flatMap(group =>
-    Object.values(group).flat().filter(bus => bus.VehicleID == busNum)
-  );
-}
-
-function findBusesByModel(keyword) {
-  return currentBusData.flatMap(group =>
-    Object.values(group).flat().filter(bus =>
-      getBusModel(bus.VehicleID).toUpperCase().includes(keyword.toUpperCase())
-    )
-  );
-}
-
-function findBusesByDepot(depot) {
-  return currentBusData.flatMap(group =>
-    Object.values(group).flat().filter(bus => {
-      const blockID = parseInt(bus.BlockID.toString().charAt(0), 10);
-      return depots[blockID]?.toUpperCase() === depot.toUpperCase();
-    })
-  );
-}
-
-function getVehicleType(route) {
-  if (redRoutes.includes(route)) return "Bus";
-  if (greenRoutes.includes(route)) return "Trolley";
-  if (yellowRoutes.includes(route)) return "Trolley";
-  if (pinkRoutes.includes(route)) return "Suburban Trolley";
-  if (Object.values(trainLines).includes(route)) return "Regional Rail";
-  return null;
-}
-
-routeInput.addEventListener("input", () => {
-  const value = routeInput.value.trim().toUpperCase();
-  const list = document.getElementById("autocompleteList");
-  list.innerHTML = "";
-
-  if (!value) return;
-
-  const suggestions = [...new Set(
-    currentBusData.flatMap(group =>
-      Object.entries(group).flatMap(([route, buses]) => {
-        const matches = [];
-        if (route.toUpperCase().startsWith(value)) matches.push(route);
-        matches.push(...buses
-          .filter(bus => bus.VehicleID.toString().startsWith(value))
-          .map(bus => bus.VehicleID.toString()));
-        matches.push(...buses
-          .filter(bus => getBusModel(bus.VehicleID).toUpperCase().includes(value))
-          .map(bus => getBusModel(bus.VehicleID)));
-        matches.push(...buses
-          .filter(bus => {
-            const blockID = parseInt(bus.BlockID.toString().charAt(0), 10);
-            return depots[blockID]?.toUpperCase().includes(value);
-          })
-          .map(bus => depots[parseInt(bus.BlockID.toString().charAt(0), 10)]));
-        return matches;
-      })
-    )
-    .concat(Object.values(depots).filter(depot => depot.toUpperCase().includes(value)))
-    .concat(Object.keys(trainLines).filter(line => line.toUpperCase().includes(value)))
-    .concat(Object.values(trainLines).filter(abbr => abbr.toUpperCase().includes(value)))
-    .concat(Object.keys(vehicleTypes).filter(type => type.toUpperCase().includes(value)))
-  )].slice(0, 10);
-
-  suggestions.forEach(suggestion => {
-    const div = document.createElement("div");
-    div.textContent = suggestion;
-    div.addEventListener("click", () => {
-      routeInput.value = suggestion;
-      list.innerHTML = "";
-      handleRouteSelection(suggestion);
-    });
-    list.appendChild(div);
-  });
-});
-
-routeInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    const value = routeInput.value.trim().toUpperCase();
-    if (value.length === 1 && value !== "K") {
-      event.preventDefault();
-      showAlert("No matching route, vehicle, model, depot, or type found.");
-    } else if (value) {
-      handleRouteSelection(value);
-      routeInput.value = "";
-      document.getElementById("autocompleteList").innerHTML = "";
-    }
-  }
-});
-
-function handleRouteSelection(value) {
-  let originalValue = value;
-  let isRouteRenamed = false;
-  // Check for renamed routes
-  if (routeNameChanges[value.toUpperCase()]) {
-    value = routeNameChanges[value.toUpperCase()];
-    isRouteRenamed = true;
-  }
-  // Check for Regional Rail full name or abbreviation
-  let trainRoute = null;
-  if (Object.keys(trainLines).some(line => line.toUpperCase() === value.toUpperCase())) {
-    trainRoute = trainLines[Object.keys(trainLines).find(line => line.toUpperCase() === value.toUpperCase())];
-  } else if (Object.values(trainLines).includes(value)) {
-    trainRoute = value;
-  }
-
-  if (isValidRoute(value)) {
-    selectedFilters.routes.add(value);
-    updateSelectedFiltersDisplay();
-    updateMap();
-    clearFilterBtn.classList.remove("hidden");
-    showAlert(isRouteRenamed ? `Route ${originalValue} is now ${value}. Filtering by route: ${value}` : `Filtering by route: ${value}`, true);
-  } else if (trainRoute) {
-    selectedFilters.routes.add(trainRoute);
-    updateSelectedFiltersDisplay();
-    updateMap();
-    clearFilterBtn.classList.remove("hidden");
-    showAlert(`Filtering by Regional Rail: ${trainRoute}`, true);
-  } else if (findBusByNumber(value).length > 0) {
-    const bus = findBusByNumber(value)[0];
-    map.setView([parseFloat(bus.lat), parseFloat(bus.lng)], 15);
-    showAlert(`Found vehicle #${value}`, true);
-  } else if (findBusesByModel(value).length > 0) {
-    selectedFilters.models.add(toTitleCase(value));
-    updateSelectedFiltersDisplay();
-    updateMap();
-    clearFilterBtn.classList.remove("hidden");
-    showAlert(`Filtering by model: ${toTitleCase(value)}`, true);
-  } else if (findBusesByDepot(value).length > 0) {
-    selectedFilters.depots.add(toTitleCase(value));
-    updateSelectedFiltersDisplay();
-    updateMap();
-    clearFilterBtn.classList.remove("hidden");
-    showAlert(`Filtering by depot: ${toTitleCase(value)}`, true);
-  } else if (Object.keys(vehicleTypes).some(type => type.toUpperCase() === value.toUpperCase())) {
-    selectedFilters.types.add(toTitleCase(value));
-    updateSelectedFiltersDisplay();
-    updateMap();
-    clearFilterBtn.classList.remove("hidden");
-    showAlert(`Filtering by type: ${toTitleCase(value)}`, true);
-  } else {
-    showAlert("No matching route, vehicle, model, depot, or type found.");
-  }
-}
-
-async function fetchBusData() {
-  try {
-    const response = await fetch("https://api.codetabs.com/v1/proxy/?quest=https://www3.septa.org/api/TransitViewAll/index.php");
-    const data = await response.json();
-    currentBusData = data.routes;
-    updateMap();
-  } catch (err) {
-    console.error("Failed to fetch bus data:", err);
-  }
-}
-
-async function fetchTrainData() {
-  try {
-    const response = await fetch("https://api.codetabs.com/v1/proxy/?quest=https://www3.septa.org/api/TrainView/index.php");
-    const data = await response.json();
-    currentTrainData = data;
-    updateMap();
-  } catch (err) {
-    console.error("Failed to fetch train data:", err);
-  }
-}
-
-function updateMap() {
-  clearMarkers(busMarkers);
-  clearMarkers(trainMarkers);
-
-  const noFiltersActive = selectedFilters.routes.size === 0 && 
-                         selectedFilters.models.size === 0 && 
-                         selectedFilters.depots.size === 0 && 
-                         selectedFilters.types.size === 0;
-
-  // Update Bus Markers
-  currentBusData.forEach(routeGroup => {
-    Object.entries(routeGroup).forEach(([routeKey, buses]) => {
-      if (!Array.isArray(buses)) return;
-      buses.forEach(bus => {
-        let route = bus.route_id;
-        if (!route || hiddenRoutes.includes(route)) return;
-        if (!bus.VehicleID || bus.VehicleID === "None" || bus.VehicleID === "0") return;
-
-        // Apply filters based on logic
-        let showMarker = noFiltersActive || filterLogic === "Any";
-        const vehicleType = getVehicleType(route);
-        if (!noFiltersActive) {
-          if (filterLogic === "All") {
-            showMarker = true;
-            if (selectedFilters.routes.size > 0 && !selectedFilters.routes.has(route)) showMarker = false;
-            if (selectedFilters.models.size > 0) {
-              const model = getBusModel(bus.VehicleID);
-              if (!Array.from(selectedFilters.models).some(filter => model.toUpperCase().includes(filter.toUpperCase()))) showMarker = false;
-            }
-            if (selectedFilters.depots.size > 0) {
+    <div id="infoPopup" style="
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  z-index: 2001;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  padding: 24px 20px 20px 20px;
+  max-width: 320px;
+  min-width: 220px;
+  font-size: 15px;
+  color: #222;
+">
+        <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px; text-align: center;">PlotThatBus</div>
+        <div style="margin-bottom: 10px; text-align: center;">
+            Real-time SEPTA transit mapper.
+            <br> Created by <a href="https://youtube.com/@TransitDrivenPhilly?sub_confirmation=1" target="_blank">TransitDrivenPhilly</a>.
+        </div>
+        <div style="font-size:13px; color:#666; text-align: center;">
+            <div style="font-size:15px; color:#5b5b5b;">
+                Credits:
+            </div>
+            Transit data comes from the <a href="https://www3.septa.org/" target="_blank" style="color:#00539F;">SEPTA API</a>.
+            <br> Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:#00539F;">OpenStreetMap contributors</a>.
+            <br> &copy; 2025 <a href="https://youtube.com/@TransitDrivenPhilly?sub_confirmation=1" target="_blank">TransitDrivenPhilly</a> | PlotThatBus.
+            <div style="font-size:10px; color:#5b5b5b; text-align: center;">
+                <br> This site is neither affiliated nor endorsed by SEPTA.
+            </div>
+        </div>
+        <button id="closeInfoPopup" style="
+    margin-top: 14px;
+    width: 100%;
+    background: #00539F;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 0;
+    font-size: 15px;
+    cursor: pointer;
+  ">Close</button>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+          loadFilters();
+          logicBtn.textContent = `Matching ${filterLogic === "All" ? "All" : "Any"} Filters`;
+          updateSelectedFiltersDisplay();
+          updateMap();
+        });
+        
+        const map = L.map('map').setView([39.9526, -75.1652], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18
+        }).addTo(map);
+        
+        //Transit vehicle numbers to model
+        
+        function getBusModel(vehicleID) {
+         const id = parseInt(vehicleID);
+         if (id === 800) return "2007 New Flyer E40LFR";
+         if (id >= 801 && id <= 837) return "2008 New Flyer E40LFR";
+         if (id >= 8120 && id <= 8219) return "2008 New Flyer DE40LF";
+         if (id >= 8220 && id <= 8339) return "2009 New Flyer DE40LF";
+         if (id >= 8340 && id <= 8459) return "2010 New Flyer DE40LFR";
+         if (id >= 8460 && id <= 8559) return "2011 New Flyer DE40LFR";
+         if (id >= 7300 && id <= 7369) return "2013 Nova Bus LFSA HEV";
+         if (id >= 7370 && id <= 7414) return "2014 Nova Bus LFSA HEV";
+         if (id >= 7415 && id <= 7454) return "2015 Nova Bus LFSA HEV";
+         if (id >= 7455 && id <= 7484) return "2016 Nova Bus LFSA HEV";
+         if (id >= 8600 && id <= 8689) return "2014 Nova Bus LFS HEV";
+         if (id >= 4600 && id <= 4634) return "2016 New Flyer Midi-30";
+         if (id >= 3000 && id <= 3089) return "2017 New Flyer XDE40";
+         if (id >= 3090 && id <= 3194) return "2018 New Flyer XDE40";
+         if (id >= 3195 && id <= 3294) return "2019 New Flyer XDE40";
+         if (id >= 3295 && id <= 3409) return "2020 New Flyer XDE40";
+         if (id >= 3410 && id <= 3524) return "2021 New Flyer XDE40";
+         if (id >= 3525 && id <= 3644) return "2022 New Flyer XDE40";
+         if (id >= 3645 && id <= 3684) return "2023 New Flyer XDE40";
+         if (id >= 3685 && id <= 3864) return "2024 New Flyer XDE40";
+         if (id >= 700 && id <= 709) return "2024 New Flyer XHE40";
+         if (id >= 9000 && id <= 9111) return "1980-1981 Kawasaki LRV";
+         if (id >= 100 && id <= 128) return "1980-1981 Kawasaki LRV";
+         if (id >= 2320 && id <= 2337) return "SEPTA PCC Trolley"
+         return "Unknown Model";
+        }
+        
+        function getTrainModel(carNum) {
+          carNum = parseInt(carNum, 10);
+          if (carNum >= 901 && carNum <= 915) return "Siemens ACS-64 (Locomotive)";
+          if (carNum >= 2401 && carNum <= 2410) return "Bombardier Comet II Cab Coach";
+          if (carNum >= 2501 && carNum <= 2525) return "Bombardier Comet II Coach";
+          if (carNum >= 2550 && carNum <= 2559) return "Bombardier Comet III “Shoreliner” Coach";
+          if (carNum >= 701 && carNum <= 738) return "Hyundai Rotem Silverliner V Double End";
+          if (carNum >= 801 && carNum <= 882) return "Hyundai Rotem Silverliner V Single End";
+          if ((carNum >= 270 && carNum <= 303) || (carNum >= 400 && carNum <= 416)) return "GE Silverliner IV Double End";
+          if ((carNum >= 101 && carNum <= 188) || (carNum >= 304 && carNum <= 399) || (carNum >= 417 && carNum <= 460)) return "GE Silverliner IV Single End";
+          return "";
+        }
+        // Route data and colors
+        const normalRoutes = ["1", "2", "4", "5", "7", "8", "9", "12", "14", "16", "19", "20", "22", "24", "25", "26", "27", "28", "29", "30", "31", "32", "35", "37", "38", "39", "40", "41", "42", "43", "44", "47M", "49", "50", "53", "54", "55", "57", "59", "61", "62", "64", "65", "67", "68", "71", "73", "75", "77", "78", "80", "81", "84", "88", "89", "90", "92", "93", "94", "95", "96", "97", "98", "99", "103", "104", "105", "106", "107", "109", "110", "111", "112", "114", "115", "117", "118", "119", "120", "123", "124", "125", "126", "127", "128", "129", "130", "131", "132", "133", "135", "139", "150", "201", "204", "206", "310", "311", "312", "409", "411", "415", "426", "428", "433", "438", "439", "441", "442", "445", "446", "447", "448", "450", "452", "461", "462", "475", "476", "477", "478", "484", "490", "492", "495", "B1 OWL", "BLVDDIR", "K", "L1 OWL", "LUCYGO", "LUCYGR"]; // Normal Bus Routes
+        const redRoutes = ["3", "6", "17", "18", "21", "23", "33", "45", "46", "47", "48", "51", "52", "56", "58", "60", "63", "66", "70", "79", "82", "108", "113"]; // Frequent Bus Routes
+        const greenRoutes = ["T1", "T2", "T3", "T4", "T5"]; //Subway-surface Trolley routes
+        const yellowRoutes = ["G1"]; // Girard Avenue Trolley
+        const pinkRoutes = ["D1", "D2"]; // Suburban Trolley routes
+        const hiddenRoutes = ["L1", "B1", "M1"]; // These routes are not tracked properly by the SEPTA API.
+        const trainLines = { // Abbreviations for the Regional Rail Lines
+          "Airport": "AIR",
+          "Chestnut Hill East": "CHE",
+          "Chestnut Hill West": "CHW",
+          "Cynwyd": "CYN",
+          "Fox Chase": "FOX",
+          "Lansdale/Doylestown": "LAN",
+          "Media/Wawa": "MED",
+          "Manayunk/Norristown": "NOR",
+          "Paoli/Thorndale": "PAO",
+          "Trenton": "TRE",
+          "Warminster": "WAR",
+          "Wilmington/Newark": "WIL",
+          "West Trenton": "WTR"
+        };
+        const depots = { // Bus Depots from first digit of the Block Number
+          1: "Comly",
+          2: "Frankford",
+          3: "Midvale",
+          4: "Victory",
+          5: "Allegheny",
+          6: "Frontier",
+          7: "Southern",
+          8: "Elmwood",
+          9: "Callowhill"
+        };
+        const routeNameChanges = { // Fix routes that had their names changed
+          "G": "63",
+          "H": "71",
+          "J": "41",
+          "L": "51",
+          "R": "82",
+          "XH": "81",
+          "10": "T1",
+          "11": "T4",
+          "13": "T3",
+          "15": "G1",
+          "34": "T2",
+          "36": "T5"
+        };
+        const vehicleTypes = { // Vehicle Types
+          "Buses": normalRoutes.concat(redRoutes),
+          "Trolley": greenRoutes.concat(yellowRoutes),
+          "Suburban Trolley": pinkRoutes,
+          "Regional Rail": Object.values(trainLines)
+        };  
+        let busMarkers = [];
+        let trainMarkers = [];
+        let currentBusData = [];
+        let currentTrainData = [];
+        let filterLogic = "Any"; // Default to Any Filter
+        const selectedFilters = {
+          routes: new Set(),
+          models: new Set(),
+          depots: new Set(),
+          types: new Set()
+        };
+        
+        const routeInput = document.getElementById("routeInput");
+        const clearFilterBtn = document.getElementById("clearFilterBtn");
+        const logicBtn = document.getElementById("logicBtn");
+        const locateBtn = document.getElementById("locateBtn");
+        const selectedRoutesDiv = document.getElementById("selectedRoutes");
+        
+        function toTitleCase(str) {
+          return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+        }
+        
+        function getColor(route) {
+          if (redRoutes.includes(route)) return "#dc504b";
+          if (greenRoutes.includes(route)) return "#5a9708";
+          if (yellowRoutes.includes(route)) return "#fcd600";
+          if (pinkRoutes.includes(route)) return "#e6427b";
+          if (Object.values(trainLines).includes(route)) return "#46647b"; // Regional Rail color
+          return "#000000";
+        }
+        
+        function getDirectionArrow(heading) {
+          if (heading == null) return "";
+          const h = parseFloat(heading);
+          if (isNaN(h)) return "";
+          if (h >= 337.5 || h < 22.5) return "⬆️"; // North
+          if (h >= 22.5 && h < 67.5) return "↗️"; // Northeast
+          if (h >= 67.5 && h < 112.5) return "➡️"; // East
+          if (h >= 112.5 && h < 157.5) return "↘️"; // Southeast
+          if (h >= 157.5 && h < 202.5) return "⬇️"; // South
+          if (h >= 202.5 && h < 247.5) return "↙️"; // Southwest
+          if (h >= 247.5 && h < 292.5) return "⬅️"; // West
+          if (h >= 292.5 && h < 337.5) return "↖️"; // Northwest
+          return "";
+        }
+        
+        function formatLateness(minutes) {
+          if (minutes == null || isNaN(minutes)) return "Unknown";
+          minutes = parseInt(minutes);
+          if (minutes === 0) return "On time";
+          if (minutes > 0) {
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = minutes % 60;
+            let result = "Late by: ";
+            if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""}`;
+            if (hours > 0 && remainingMinutes > 0) result += " and ";
+            if (remainingMinutes > 0) result += `${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`;
+            return result;
+          }
+          // Handle early
+          const absMinutes = Math.abs(minutes);
+          const hours = Math.floor(absMinutes / 60);
+          const remainingMinutes = absMinutes % 60;
+          let result = "Early by: ";
+          if (hours > 0) result += `${hours} hour${hours > 1 ? "s" : ""}`;
+          if (hours > 0 && remainingMinutes > 0) result += " and ";
+          if (remainingMinutes > 0) result += `${remainingMinutes} minute${remainingMinutes > 1 ? "s" : ""}`;
+          return result;
+        }
+         
+        clearFilterBtn.addEventListener("click", () => {
+          selectedFilters.routes.clear();
+          selectedFilters.models.clear();
+          selectedFilters.depots.clear();
+          selectedFilters.types.clear();
+          updateSelectedFiltersDisplay();
+          saveFilters();
+          updateMap();
+        });
+        
+        function createIcon(label, color, heading) { // Plots the bus on the map
+        
+            const arrow = getDirectionArrow(heading);
+            return L.divIcon({
+             className: "custom-icon",
+             html: `<div style="
+               background:${color};color:#fff;
+               padding:2px 4px;border-radius:4px;
+               font-size:12px;text-align:center;
+               font-weight:bold;
+               min-width:24px;
+             ">${label}${arrow}</div>`,
+              iconSize: undefined,
+             iconAnchor: [15, 9],
+          });
+        }
+        
+        function clearMarkers(markers) {
+          markers.forEach(marker => map.removeLayer(marker));
+          markers.length = 0;
+        }
+        
+        function showAlert(message, isSuccess = false) {
+          const alertBox = document.getElementById("alertMessage");
+          alertBox.textContent = message;
+          alertBox.style.backgroundColor = isSuccess ? "#28a745" : "#dc3545";
+          alertBox.classList.remove("hidden");
+          setTimeout(() => alertBox.classList.add("hidden"), 3000);
+        }
+        
+        function isValidRoute(route) {
+          const allRoutes = currentBusData.flatMap(group =>
+            Object.entries(group).map(([key, buses]) => key)
+          );
+          return allRoutes.includes(route) || Object.values(trainLines).includes(route);
+        }
+        
+        function findBusByNumber(busNum) {
+          return currentBusData.flatMap(group =>
+            Object.values(group).flat().filter(bus => bus.VehicleID == busNum)
+          );
+        }
+        
+        function findBusesByModel(keyword) {
+          return currentBusData.flatMap(group =>
+            Object.values(group).flat().filter(bus =>
+              getBusModel(bus.VehicleID).toUpperCase().includes(keyword.toUpperCase())
+            )
+          );
+        }
+        
+        function findBusesByDepot(depot) {
+          return currentBusData.flatMap(group =>
+            Object.values(group).flat().filter(bus => {
               const blockID = parseInt(bus.BlockID.toString().charAt(0), 10);
-              const depot = depots[blockID] || "Unknown Depot";
-              if (!Array.from(selectedFilters.depots).some(d => d.toUpperCase() === depot.toUpperCase())) showMarker = false;
+              return depots[blockID]?.toUpperCase() === depot.toUpperCase();
+            })
+          );
+        }
+        
+        function getVehicleType(route) {
+          if (normalRoutes.includes(route)) return "Buses";
+          if (redRoutes.includes(route)) return "Buses";
+          if (greenRoutes.includes(route)) return "Trolley";
+          if (yellowRoutes.includes(route)) return "Trolley";
+          if (pinkRoutes.includes(route)) return "Suburban Trolley";
+          if (Object.values(trainLines).includes(route)) return "Regional Rail";
+          return null;
+        }
+        
+        routeInput.addEventListener("input", () => {
+          const value = routeInput.value.trim().toUpperCase();
+          const list = document.getElementById("autocompleteList");
+          list.innerHTML = "";
+        
+          if (!value) return;
+        
+          const suggestions = [...new Set(
+            currentBusData.flatMap(group =>
+              Object.entries(group).flatMap(([route, buses]) => {
+                const matches = [];
+                if (route.toUpperCase().startsWith(value)) matches.push(route);
+                matches.push(...buses
+                  .filter(bus => bus.VehicleID.toString().startsWith(value))
+                  .map(bus => bus.VehicleID.toString()));
+                matches.push(...buses
+                  .filter(bus => getBusModel(bus.VehicleID).toUpperCase().includes(value))
+                  .map(bus => getBusModel(bus.VehicleID)));
+                matches.push(...buses
+                  .filter(bus => {
+                    const blockID = parseInt(bus.BlockID.toString().charAt(0), 10);
+                    return depots[blockID]?.toUpperCase().includes(value);
+                  })
+                  .map(bus => depots[parseInt(bus.BlockID.toString().charAt(0), 10)]));
+                return matches;
+              })
+            )
+            .concat(Object.values(depots).filter(depot => depot.toUpperCase().includes(value)))
+            .concat(Object.keys(trainLines).filter(line => line.toUpperCase().includes(value)))
+            .concat(Object.values(trainLines).filter(abbr => abbr.toUpperCase().includes(value)))
+            .concat(Object.keys(vehicleTypes).filter(type => type.toUpperCase().includes(value)))
+          )].slice(0, 10);
+        
+          suggestions.forEach(suggestion => {
+            const div = document.createElement("div");
+            div.textContent = suggestion;
+            div.addEventListener("click", () => {
+              routeInput.value = suggestion;
+              list.innerHTML = "";
+              handleRouteSelection(suggestion);
+            });
+            list.appendChild(div);
+          });
+        });
+        
+        routeInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            const value = routeInput.value.trim().toUpperCase();
+            // Allow single digit (0-9) or J or K
+            if (
+              value.length === 1 &&
+              !/^[0-9GHJKLR]$/.test(value)
+            ) {
+              event.preventDefault();
+              showAlert("No matching route, vehicle, model, depot, or type found.");
+              return;
             }
-            if (selectedFilters.types.size > 0 && !selectedFilters.types.has(vehicleType)) showMarker = false;
-          } else { // Any logic
-            showMarker = false;
-            if (selectedFilters.routes.has(route)) showMarker = true;
-            if (selectedFilters.models.size > 0) {
-              const model = getBusModel(bus.VehicleID);
-              if (Array.from(selectedFilters.models).some(filter => model.toUpperCase().includes(filter.toUpperCase()))) showMarker = true;
+            if (value) {
+              handleRouteSelection(value);
+              routeInput.value = "";
+              document.getElementById("autocompleteList").innerHTML = "";
             }
-            if (selectedFilters.depots.size > 0) {
-              const blockID = parseInt(bus.BlockID.toString().charAt(0), 10);
-              const depot = depots[blockID] || "Unknown Depot";
-              if (Array.from(selectedFilters.depots).some(d => d.toUpperCase() === depot.toUpperCase())) showMarker = true;
-            }
-            if (selectedFilters.types.size > 0 && selectedFilters.types.has(vehicleType)) showMarker = true;
+          }
+        });
+        
+        function handleRouteSelection(value) {
+          let originalValue = value;
+          let isRouteRenamed = false;
+          // Check for renamed routes
+          if (routeNameChanges[value.toUpperCase()]) {
+            value = routeNameChanges[value.toUpperCase()];
+            isRouteRenamed = true;
+          }
+          // Check for Regional Rail full name or abbreviation
+          let trainRoute = null;
+          if (Object.keys(trainLines).some(line => line.toUpperCase() === value.toUpperCase())) {
+            trainRoute = trainLines[Object.keys(trainLines).find(line => line.toUpperCase() === value.toUpperCase())];
+          } else if (Object.values(trainLines).includes(value)) {
+            trainRoute = value;
+          }
+        
+          if (isValidRoute(value)) {
+            selectedFilters.routes.add(value);
+            updateSelectedFiltersDisplay();
+            updateMap();
+            saveFilters()
+            showAlert(isRouteRenamed ? `Route ${originalValue} is now ${value}. Filtering by route: ${value}` : `Filtering by route: ${value}`, true);
+          } else if (trainRoute) {
+            selectedFilters.routes.add(trainRoute);
+            updateSelectedFiltersDisplay();
+            updateMap();
+            saveFilters()
+            showAlert(`Filtering by Regional Rail: ${trainRoute}`, true);
+          } else if (findBusByNumber(value).length > 0) {
+            const bus = findBusByNumber(value)[0];
+            map.setView([parseFloat(bus.lat), parseFloat(bus.lng)], 15);
+            showAlert(`Found vehicle #${value}`, true);
+          } else if (findBusesByModel(value).length > 0) {
+            selectedFilters.models.add(toTitleCase(value));
+            updateSelectedFiltersDisplay();
+            updateMap();
+            saveFilters()
+            showAlert(`Filtering by model: ${toTitleCase(value)}`, true);
+          } else if (findBusesByDepot(value).length > 0) {
+            selectedFilters.depots.add(toTitleCase(value));
+            updateSelectedFiltersDisplay();
+            updateMap();
+            saveFilters()
+            showAlert(`Filtering by depot: ${toTitleCase(value)}`, true);
+          } else if (Object.keys(vehicleTypes).some(type => type.toUpperCase() === value.toUpperCase())) {
+            selectedFilters.types.add(toTitleCase(value));
+            updateSelectedFiltersDisplay();
+            updateMap();
+            saveFilters()
+            showAlert(`Filtering by type: ${toTitleCase(value)}`, true);
+          } else {
+            showAlert("No matching route, vehicle, model, depot, or type found.");
           }
         }
-
-        if (!showMarker) return;
         
-        const lat = parseFloat(bus.lat);
-        const lng = parseFloat(bus.lng);
-        if (isNaN(lat) || isNaN(lng)) return;
-
-        const blockID = parseInt(bus.BlockID.toString().charAt(0), 10);
-        const depot = depots[blockID] || "Unknown Depot";
-        const model = getBusModel(bus.VehicleID);
-        const heading = bus.heading;
-
-        if (route === "BLVDDIR") route = "DIR";
-       
-        const marker = L.marker([lat, lng], {
-          icon: createIcon(route, getColor(routeKey), heading)
-        }).bindPopup(`
-          <b>Route ${route}</b><br>
-          Vehicle Number: ${bus.VehicleID}<br>
-          Model: ${model}<br>
-          Block Number: ${bus.BlockID}<br>
-          Depot: ${depot}<br>
-          Destination: ${bus.destination}<br>
-          Direction: ${bus.Direction}<br>
-          ${formatLateness(bus.late)}
-        `);
-
-        marker.addTo(map);
-        busMarkers.push(marker);
-      });
-    });
-  });
-
-  // Update Train Markers
-  const hasRailRoutes = Array.from(selectedFilters.routes).some(route => Object.values(trainLines).includes(route));
-  const hasRailType = selectedFilters.types.has("Regional Rail");
-
-  currentTrainData.forEach(train => {
-    const route = trainLines[train.line] || train.line;
-    let showMarker = noFiltersActive;
-
-    if (!noFiltersActive) {
-      if (filterLogic === "All") {
-        showMarker = true;
-        if (selectedFilters.routes.size > 0 && !selectedFilters.routes.has(route)) showMarker = false;
-        if (selectedFilters.types.size > 0 && !selectedFilters.types.has("Regional Rail")) showMarker = false;
-      } else { // Any logic
-        showMarker = selectedFilters.routes.has(route) || selectedFilters.types.has("Regional Rail");
-      }
-    }
-
-    if (!showMarker) return;
-
-    const lat = parseFloat(train.lat);
-    const lng = parseFloat(train.lon);
-    if (isNaN(lat) || isNaN(lng)) return;
-
-    const marker = L.marker([lat, lng], {
-      icon: createIcon(route, "#46647b", train.heading)
-    }).bindPopup(`
-      <b>Train ${train.trainno}</b><br>
-      Line: ${train.line} (${route})<br>
-      Destination: ${train.dest}<br>
-      Current Stop: ${train.currentstop}<br>
-      Next Stop: ${train.nextstop}<br>
-      Late by: ${train.late} minutes<br>
-      Cars: ${train.consist}
-    `);
-
-    marker.addTo(map);
-    trainMarkers.push(marker);
-  });
-}
-
-function updateSelectedFiltersDisplay() {
-  selectedRoutesDiv.innerHTML = "";
-  // Display routes
-  selectedFilters.routes.forEach(filter => {
-    const tag = document.createElement("div");
-    tag.className = "route-tag";
-    tag.style.backgroundColor = getColor(filter);
-    tag.textContent = Object.values(trainLines).includes(filter) ? filter : filter; // Keep routes as-is
-    tag.addEventListener("click", () => {
-      selectedFilters.routes.delete(filter);
-      updateSelectedFiltersDisplay();
-      updateMap();
-      if (selectedFilters.routes.size === 0 && selectedFilters.models.size === 0 && selectedFilters.depots.size === 0 && selectedFilters.types.size === 0) {
-        clearFilterBtn.classList.add("hidden");
-      }
-    });
-    selectedRoutesDiv.appendChild(tag);
-  });
-  // Display models
-  selectedFilters.models.forEach(filter => {
-    const tag = document.createElement("div");
-    tag.className = "route-tag";
-    tag.style.backgroundColor = "#00539F";
-    tag.textContent = filter; // Already in title case
-    tag.addEventListener("click", () => {
-      selectedFilters.models.delete(filter);
-      updateSelectedFiltersDisplay();
-      updateMap();
-      if (selectedFilters.routes.size === 0 && selectedFilters.models.size === 0 && selectedFilters.depots.size === 0 && selectedFilters.types.size === 0) {
-        clearFilterBtn.classList.add("hidden");
-      }
-    });
-    selectedRoutesDiv.appendChild(tag);
-  });
-  // Display depots
-  selectedFilters.depots.forEach(filter => {
-    const tag = document.createElement("div");
-    tag.className = "route-tag";
-    tag.style.backgroundColor = "#00539F";
-    tag.textContent = filter; // Already in title case
-    tag.addEventListener("click", () => {
-      selectedFilters.depots.delete(filter);
-      updateSelectedFiltersDisplay();
-      updateMap();
-      if (selectedFilters.routes.size === 0 && selectedFilters.models.size === 0 && selectedFilters.depots.size === 0 && selectedFilters.types.size === 0) {
-        clearFilterBtn.classList.add("hidden");
-      }
-    });
-    selectedRoutesDiv.appendChild(tag);
-  });
-  // Display types
-  selectedFilters.types.forEach(filter => {
-    const tag = document.createElement("div");
-    tag.className = "route-tag";
-    tag.style.backgroundColor = "#00539F";
-    tag.textContent = filter; // Already in title case
-    tag.addEventListener("click", () => {
-      selectedFilters.types.delete(filter);
-      updateSelectedFiltersDisplay();
-      updateMap();
-      if (selectedFilters.routes.size === 0 && selectedFilters.models.size === 0 && selectedFilters.depots.size === 0 && selectedFilters.types.size === 0) {
-        clearFilterBtn.classList.add("hidden");
-      }
-    });
-    selectedRoutesDiv.appendChild(tag);
-  });
-}
-
-locateBtn.addEventListener("click", () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(position => {
-      const { latitude, longitude } = position.coords;
-      map.setView([latitude, longitude], 15);
-    }, (error) => {
-      showAlert("Geolocation denied or unavailable.");
-    });
-  } else {
-    showAlert("Geolocation is not supported by this browser.");
-  }
-});
-
-clearFilterBtn.addEventListener("click", () => {
-  selectedFilters.routes.clear();
-  selectedFilters.models.clear();
-  selectedFilters.depots.clear();
-  selectedFilters.types.clear();
-  updateSelectedFiltersDisplay();
-  updateMap();
-  clearFilterBtn.classList.add("hidden");
-});
-
-logicBtn.addEventListener("click", () => {
-  filterLogic = filterLogic === "All" ? "Any" : "All";
-  logicBtn.textContent = `Matching ${filterLogic === "All" ? "Any" : "All"} Filters`;
-  updateMap();
-});
-
-// Register service worker for PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => {
-      console.log('Service Worker registered:', reg);
-    }).catch(err => {
-      console.error('Service Worker registration failed:', err);
-    });
-  });
-}
-
-// Automatic refresh every 10 seconds
-setInterval(() => {
-  fetchBusData();
-  fetchTrainData();
-}, 10000);
-
-// Initial load
-fetchBusData();
-fetchTrainData();
-
-// Get location
- window.addEventListener('load', () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-        map.setView([latitude, longitude], 15);
-      },
-    );
-  }
-});
- 
-</script>
+        async function fetchBusData() {
+          try {
+            const response = await fetch("https://api.codetabs.com/v1/proxy/?quest=https://www3.septa.org/api/TransitViewAll/index.php");
+            const data = await response.json();
+            currentBusData = data.routes;
+            updateMap();
+          } catch (err) {
+            console.error("Failed to fetch bus data:", err);
+          }
+        }
+        
+        async function fetchTrainData() {
+          try {
+            const response = await fetch("https://api.codetabs.com/v1/proxy/?quest=https://www3.septa.org/api/TrainView/index.php");
+            const data = await response.json();
+            currentTrainData = data;
+            updateMap();
+          } catch (err) {
+            console.error("Failed to fetch train data:", err);
+          }
+        }
+        
+        function updateMap() {
+          clearMarkers(busMarkers);
+          clearMarkers(trainMarkers);
+        
+          const noFiltersActive = selectedFilters.routes.size === 0 && 
+                                 selectedFilters.models.size === 0 && 
+                                 selectedFilters.depots.size === 0 && 
+                                 selectedFilters.types.size === 0;
+        
+          // Update Bus Markers
+          currentBusData.forEach(routeGroup => {
+            Object.entries(routeGroup).forEach(([routeKey, buses]) => {
+              if (!Array.isArray(buses)) return;
+              buses.forEach(bus => {
+                let route = bus.route_id;
+                if (!route || hiddenRoutes.includes(route)) return;
+                if (!bus.VehicleID || bus.VehicleID === "None" || bus.VehicleID === "0") return;
+                if (parseInt(bus.late) === 998) return;
+        
+                // Apply filters based on logic
+                let showMarker = noFiltersActive || filterLogic === "Any";
+                const vehicleType = getVehicleType(route);
+                if (!noFiltersActive) {
+                  if (filterLogic === "All") {
+                    showMarker = true;
+                    if (selectedFilters.routes.size > 0 && !selectedFilters.routes.has(route)) showMarker = false;
+                    if (selectedFilters.models.size > 0) {
+                      const model = getBusModel(bus.VehicleID);
+                      if (!Array.from(selectedFilters.models).some(filter => model.toUpperCase().includes(filter.toUpperCase()))) showMarker = false;
+                    }
+                    if (selectedFilters.depots.size > 0) {
+                      const blockID = parseInt(bus.BlockID.toString().charAt(0), 10);
+                      const depot = depots[blockID] || "Unknown Depot";
+                      if (!Array.from(selectedFilters.depots).some(d => d.toUpperCase() === depot.toUpperCase())) showMarker = false;
+                    }
+                    if (selectedFilters.types.size > 0 && !selectedFilters.types.has(vehicleType)) showMarker = false;
+                  } else { // Any logic
+                    showMarker = false;
+                    if (selectedFilters.routes.has(route)) showMarker = true;
+                    if (selectedFilters.models.size > 0) {
+                      const model = getBusModel(bus.VehicleID);
+                      if (Array.from(selectedFilters.models).some(filter => model.toUpperCase().includes(filter.toUpperCase()))) showMarker = true;
+                    }
+                    if (selectedFilters.depots.size > 0) {
+                      const blockID = parseInt(bus.BlockID.toString().charAt(0), 10);
+                      const depot = depots[blockID] || "Unknown Depot";
+                      if (Array.from(selectedFilters.depots).some(d => d.toUpperCase() === depot.toUpperCase())) showMarker = true;
+                    }
+                    if (selectedFilters.types.size > 0 && selectedFilters.types.has(vehicleType)) showMarker = true;
+                  }
+                }
+        
+                if (!showMarker) return;
+                
+                const lat = parseFloat(bus.lat);
+                const lng = parseFloat(bus.lng);
+                if (isNaN(lat) || isNaN(lng)) return;
+        
+                const blockID = parseInt(bus.BlockID.toString().charAt(0), 10);
+                const depot = depots[blockID] || "Unknown Depot";
+                const model = getBusModel(bus.VehicleID);
+                const heading = bus.heading;
+                       
+                const marker = L.marker([lat, lng], {
+                  icon: createIcon(route, getColor(routeKey), heading)
+                }).bindPopup(`
+                  <b>Route ${route}</b><br>
+                  Vehicle Number: ${bus.VehicleID}<br>
+                  Model: ${model}<br>
+                  Block Number: ${bus.BlockID}<br>
+                  Depot: ${depot}<br>
+                  Destination: ${bus.destination}<br>
+                  Direction: ${bus.Direction}<br>
+                  ${formatLateness(bus.late)}
+                `);
+        
+                marker.addTo(map);
+                busMarkers.push(marker);
+              });
+            });
+          });
+        
+          // Update Train Markers
+          const hasRailRoutes = Array.from(selectedFilters.routes).some(route => Object.values(trainLines).includes(route));
+          const hasRailType = selectedFilters.types.has("Regional Rail");
+        
+          currentTrainData.forEach(train => {
+            const route = trainLines[train.line] || train.line;
+            let showMarker = noFiltersActive;
+        
+            if (!noFiltersActive) {
+              if (filterLogic === "All") {
+                showMarker = true;
+                if (selectedFilters.routes.size > 0 && !selectedFilters.routes.has(route)) showMarker = false;
+                if (selectedFilters.types.size > 0 && !selectedFilters.types.has("Regional Rail")) showMarker = false;
+              } else { // Any logic
+                showMarker = selectedFilters.routes.has(route) || selectedFilters.types.has("Regional Rail");
+              }
+            }
+        
+            if (!showMarker) return;
+        
+            const lat = parseFloat(train.lat);
+            const lng = parseFloat(train.lon);
+            if (isNaN(lat) || isNaN(lng)) return;
+                    
+            let star = "";
+            let liveryName = "";
+            if (train.consist) {
+        const heritageMap = {
+            "280": "Reading",
+            "304": "Conrail",
+            "276": "Pennsylvania Railroad",
+            "401": "Penn Central"
+        };
+        const cars = train.consist.split(",").map(s => s.trim());
+        const found = cars.find(car => heritageMap[car]);
+        if (found) {
+            star = " ⭐";
+            liveryName = " " + heritageMap[found];
+        }
+            }
+        
+          let models = [];
+          let loco = "";
+          if (train.consist) {
+            const cars = train.consist.split(",").map(s => s.trim());
+            cars.forEach(car => {
+              const model = getTrainModel(car);
+              if (model && !models.includes(model)) {
+        if (model.includes("Locomotive")) {
+          loco = model;
+        } else {
+          models.push(model);
+        }
+              }
+            });
+          }
+          if (loco) models.unshift(loco);
+          const modelList = models;
+        
+          const marker = L.marker([lat, lng], {
+        icon: createIcon(route + star, "#46647b", train.heading)
+            }).bindPopup(`
+        <b>Train ${train.trainno}${star}${liveryName}</b><br>
+        Line: ${train.line} (${route})<br>
+        Destination: ${train.dest}<br>
+        Current Stop: ${train.currentstop}<br>
+        Next Stop: ${train.nextstop}<br>
+        Late by: ${train.late} minutes<br>
+        Cars: ${train.consist}<br>
+        <b>Rolling Stock:</b> ${modelList.length ? modelList.join(", ") : "Unknown"}
+            `);
+        
+            marker.addTo(map);
+            trainMarkers.push(marker);
+        });
+           
+        }
+        function updateSelectedFiltersDisplay() {
+          selectedRoutesDiv.innerHTML = "";
+          if (
+            selectedFilters.routes.size > 0 ||
+            selectedFilters.models.size > 0 ||
+            selectedFilters.depots.size > 0 ||
+            selectedFilters.types.size > 0
+          ) {
+            clearFilterBtn.classList.remove("hidden");
+          } else {
+            clearFilterBtn.classList.add("hidden");
+          }
+        
+          selectedFilters.routes.forEach(filter => {
+            const tag = document.createElement("div");
+            tag.className = "route-tag";
+            tag.style.backgroundColor = getColor(filter);
+            tag.textContent = Object.values(trainLines).includes(filter) ? filter : filter; // Keep routes as-is
+            tag.addEventListener("click", () => {
+              selectedFilters.routes.delete(filter);
+              updateSelectedFiltersDisplay();
+              saveFilters()
+              updateMap();
+            });
+            selectedRoutesDiv.appendChild(tag);
+          });
+          // Display models
+          selectedFilters.models.forEach(filter => {
+            const tag = document.createElement("div");
+            tag.className = "route-tag";
+            tag.style.backgroundColor = "#00539F";
+            tag.textContent = filter; // Already in title case
+            tag.addEventListener("click", () => {
+              selectedFilters.models.delete(filter);
+              updateSelectedFiltersDisplay();
+              saveFilters();
+              updateMap();
+            });
+            selectedRoutesDiv.appendChild(tag);
+          });
+          // Display depots
+          selectedFilters.depots.forEach(filter => {
+            const tag = document.createElement("div");
+            tag.className = "route-tag";
+            tag.style.backgroundColor = "#00539F";
+            tag.textContent = filter; // Already in title case
+            tag.addEventListener("click", () => {
+              selectedFilters.depots.delete(filter);
+              updateSelectedFiltersDisplay();
+              saveFilters();
+              updateMap();
+            });
+            selectedRoutesDiv.appendChild(tag);
+          });
+          // Display types
+          selectedFilters.types.forEach(filter => {
+            const tag = document.createElement("div");
+            tag.className = "route-tag";
+            tag.style.backgroundColor = "#00539F";
+            tag.textContent = filter; // Already in title case
+            tag.addEventListener("click", () => {
+              selectedFilters.types.delete(filter);
+              updateSelectedFiltersDisplay();
+              saveFilters();
+              updateMap();
+            });
+            selectedRoutesDiv.appendChild(tag);
+          });
+        }
+        
+        locateBtn.addEventListener("click", () => {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+              const { latitude, longitude } = position.coords;
+              map.setView([latitude, longitude], 15);
+            }, (error) => {
+              showAlert("Geolocation denied or unavailable.");
+            });
+          } else {
+            showAlert("Geolocation is not supported by this browser.");
+          }
+        });
+        
+        logicBtn.addEventListener("click", () => {
+          filterLogic = filterLogic === "All" ? "Any" : "All";
+          logicBtn.textContent = `Matching ${filterLogic === "All" ? "All" : "Any"} Filters`;
+          updateMap();
+        });
+        
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+              console.log('Service Worker registered:', reg);
+            }).catch(err => {
+              console.error('Service Worker registration failed:', err);
+            });
+          });
+        }
+        
+        // Automatic refresh every 10 seconds
+        setInterval(() => {
+          fetchBusData();
+          fetchTrainData();
+        }, 10000);
+        
+        // Initial load
+        fetchBusData();
+        fetchTrainData();
+        
+        // Get location
+         window.addEventListener('load', () => {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              position => {
+                const { latitude, longitude } = position.coords;
+                map.setView([latitude, longitude], 15);
+              },
+            );
+          }
+        });
+        
+        function saveFilters() {
+          localStorage.setItem("plotThatBusFilters", JSON.stringify({
+            routes: Array.from(selectedFilters.routes),
+            models: Array.from(selectedFilters.models),
+            depots: Array.from(selectedFilters.depots),
+            types: Array.from(selectedFilters.types),
+            logic: filterLogic
+          }));
+        }
+        
+        function loadFilters() {
+          const saved = localStorage.getItem("plotThatBusFilters");
+          if (saved) {
+            const obj = JSON.parse(saved);
+            selectedFilters.routes = new Set(obj.routes || []);
+            selectedFilters.models = new Set(obj.models || []);
+            selectedFilters.depots = new Set(obj.depots || []);
+            selectedFilters.types = new Set(obj.types || []);
+            filterLogic = obj.logic || "Any";
+          }
+        }
+        
+        // Info popup logic
+        document.getElementById("infoBtn").onclick = function() {
+          const popup = document.getElementById("infoPopup");
+          // Toggle popup: open if closed, close if open
+          popup.style.display = (popup.style.display === "block") ? "none" : "block";
+        };
+        // Optional: close popup when clicking outside
+        window.addEventListener("click", function(e) {
+          const popup = document.getElementById("infoPopup");
+          const btn = document.getElementById("infoBtn");
+          if (popup.style.display === "block" && !popup.contains(e.target) && !btn.contains(e.target)) {
+            popup.style.display = "none";
+          }
+        });
+    </script>
 </body>
+
 </html>
